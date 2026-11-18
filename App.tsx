@@ -209,7 +209,7 @@ function PlanningScheduler({rows}:{rows:Rec[]}){
   const planned=Math.max(0,Number(d['Planned quantity']||0)),actual=Math.max(0,Number(d['Actual quantity']||0));
   const cycle=Number(d['Target cycle time (sec)']||0),minutes=Number(d['Planned production time (min)']||0),down=Math.max(0,Number(d['Downtime (min)']||0));
   const init=(map:Record<string,any>,key:string,name:string)=>map[key]||(map[key]={name,records:0,planned:0,actual:0,capacity:0,eligible:0,missing:0,cycleSum:0,cycleCount:0,minutes:0});
-  const l=init(lineMap,line,line),sk=line+' · '+shift,sh=init(shiftMap,sk,shift);
+  const l=init(lineMap,line,line),sk=line+' · '+shift,sh=init(shiftMap,sk,sk);
   [l,sh].forEach(x=>{x.records++;x.planned+=planned;x.actual+=actual});
   if(cycle>0){l.cycleSum+=cycle;l.cycleCount++;sh.cycleSum+=cycle;sh.cycleCount++}else missingCycle++;
   if(minutes>0){l.minutes+=minutes;sh.minutes+=minutes}else missingTime++;
@@ -225,8 +225,8 @@ function PlanningScheduler({rows}:{rows:Rec[]}){
  const chosen=lines.filter((x:any)=>scenarioLine==='All lines'||x.name===scenarioLine);
  const cycles=chosen.filter((x:any)=>x.avgCycle>0);
  const scenarioCycle=cycles.length?cycles.reduce((a:number,x:any)=>a+x.avgCycle,0)/cycles.length:0;
- const scenarioCapacity=scenarioCycle>0?Number(hours)*3600*Number(shifts)*(Number(availability)/100)/scenarioCycle:0;
- const scenarioGap=Number(target)-scenarioCapacity;
+ const scenarioHours=Math.max(0,Number(hours)||0),scenarioShifts=Math.max(0,Number(shifts)||0),scenarioAvailability=Math.max(0,Math.min(100,Number(availability)||0)),scenarioTarget=Math.max(0,Number(target)||0);\n const scenarioCapacity=scenarioCycle>0?scenarioHours*3600*scenarioShifts*(scenarioAvailability/100)/scenarioCycle:0;
+ const scenarioGap=scenarioTarget-scenarioCapacity;
  const risks=lines.flatMap((x:any)=>[
   ...(x.missing?[{priority:'Data gap',line:x.name,issue:x.missing+' record(s) missing target cycle time or planned production time'}]:[]),
   ...(x.planned>0&&x.capacity>0&&x.planned>x.capacity?[{priority:'Critical',line:x.name,issue:'Planned quantity exceeds estimated recorded capacity by '+Math.ceil(x.planned-x.capacity)+' pcs'}]:[]),
