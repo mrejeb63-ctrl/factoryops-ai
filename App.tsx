@@ -32,6 +32,30 @@ export default function App(){
  function edit(r:Rec){setEditing(r);setForm({...r,details:r.details||{}});setMod(r.module as Mod);setShow(true)}
  const list=useMemo(()=>rows.filter(r=>(mod==='dashboard'||mod==='ai'||mod==='settings'||r.module===mod)&&(`${r.title} ${r.status} ${r.notes} ${JSON.stringify(r.details)}`).toLowerCase().includes(query.toLowerCase())),[rows,mod,query]);
  const stats=useMemo(()=>{const prod=rows.filter(r=>r.module==='production');const planned=prod.reduce((a,r)=>a+Number(r.details?.['Planned quantity']||0),0);const actual=prod.reduce((a,r)=>a+Number(r.details?.['Actual quantity']||0),0);const good=prod.reduce((a,r)=>a+Number(r.details?.['Good parts']||0),0);const bom=rows.filter(r=>r.module==='bom');const audited=bom.filter(r=>r.details?.['BOM accuracy (%)']!==''&&r.details?.['BOM accuracy (%)']!==undefined&&Number.isFinite(Number(r.details?.['BOM accuracy (%)'])));const q=rows.filter(r=>r.module==='quality'&&r.status!=='Closed');const down=rows.filter(r=>r.module==='maintenance').reduce((a,r)=>a+Number(r.details?.['Downtime hours']||0),0);const actualUsage=prod.reduce((a,r)=>a+Number(r.details?.['Actual usage']||0),0);const requiredUsage=prod.reduce((sum,p)=>{const key=String(p.details?.['Part number']||p.details?.BOM||p.title||'').toLowerCase();const match=bom.find(b=>String(b.details?.['Part number']||b.title||'').toLowerCase()===key||String(b.title||'').toLowerCase()===key);const rate=Number(match?.details?.['Exchange rate']||0);const pieces=Number(p.details?.['Number of pieces']||0);return sum+Number(p.details?.['Required quantity (Full Qty)']||pieces*rate||0)},0);const overUsage=actualUsage-requiredUsage;return{planned,actual,good,bom:bom.length,q:q.length,down,accuracy:audited.length?Math.round(audited.reduce((a,r)=>a+Number(r.details['BOM accuracy (%)']),0)/audited.length):null,audited:audited.length,rate:actual?Math.round(good/actual*100):0,actualUsage,requiredUsage,overUsage,actions:rows.filter(r=>r.module==='actions'&&r.status!=='Completed').length,risks:rows.filter(r=>r.module==='risks'&&r.status!=='Closed').length}},[rows]);
+ const usageAnalysis=useMemo(()=>{
+  const bomRows=rows.filter(r=>r.module==='bom');
+  const productionRows=rows.filter(r=>r.module==='production');
+  const entries=productionRows.map(p=>{
+   const part=String(p.details?.['Part number']||'').trim().toLowerCase();
+   const bomRef=String(p.details?.BOM||'').trim().toLowerCase();
+   const bom=bomRows.find(b=>part&&String(b.details?.['Part number']||'').trim().toLowerCase()===part)
+    ||bomRows.find(b=>bomRef&&(String(b.title||'').trim().toLowerCase()===bomRef||String(b.details?.['Master BOM']||'').trim().toLowerCase()===bomRef||String(b.details?.['Part number']||'').trim().toLowerCase()===bomRef));
+   if(!bom)return null;
+   const pieces=Number(p.details?.['Number of pieces']||0);
+   const bomQty=Number(bom.details?.Quantity||0);
+   const exchange=Number(bom.details?.['Exchange rate']||0);
+   const estimated=pieces*bomQty*exchange;
+   const actual=Number(p.details?.['Actual usage']||0);
+   const variance=actual-estimated;
+   const unitPrice=Number(bom.details?.PRICE||0);
+   const currency=String(bom.details?.Currency||'Unspecified');
+   const costAvailable=unitPrice>0;
+   return {id:p.id,bom:bom.title,part:String(bom.details?.['Part number']||p.details?.['Part number']||''),line:String(p.details?.['Production line']||bom.details?.['Production line']||'Unassigned'),date:p.details?.['Production date']||p.record_date,unit:String(bom.details?.Unit||''),pieces,bomQty,exchange,estimated,actual,variance,unitPrice,currency,plannedCost:costAvailable?estimated*unitPrice:null,actualCost:costAvailable?actual*unitPrice:null,costVariance:costAvailable?variance*unitPrice:null,type:variance>0.000001?'Risk':variance< -0.000001?'Opportunity':'On target'};
+  }).filter(Boolean) as any[];
+  const byCurrency:Record<string,{planned:number;actual:number;variance:number;saving:number;overuse:number;count:number}>={};
+  entries.forEach(e=>{if(e.plannedCost===null)return;const x=byCurrency[e.currency]|| (byCurrency[e.currency]={planned:0,actual:0,variance:0,saving:0,overuse:0,count:0});x.planned+=e.plannedCost;x.actual+=e.actualCost;x.variance+=e.costVariance;if(e.costVariance<0)x.saving+=-e.costVariance;if(e.costVariance>0)x.overuse+=e.costVariance;x.count++});
+  return {entries,byCurrency,risks:entries.filter(e=>e.type==='Risk'),opportunities:entries.filter(e=>e.type==='Opportunity'),unmatched:productionRows.filter(p=>!entries.some(e=>e.id===p.id)).length};
+ },[rows]);
  function exportCSV(){const data=list.map(r=>({Module:r.module,Title:r.title,Status:r.status,Date:r.record_date,Value:r.value,Notes:r.notes,...r.details}));const ws=XLSX.utils.json_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'FactoryOps');XLSX.writeFile(wb,'factoryops-export.xlsx')}
  function downloadTemplate(){
  const fields=defaults[mod]||[];
