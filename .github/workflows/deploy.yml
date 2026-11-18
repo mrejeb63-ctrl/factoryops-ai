@@ -2,7 +2,7 @@ name: Build and deploy FactoryOps AI
 
 on:
   push:
-    branches: [main]
+    branches: [main, factoryops-ai-1.1-fix]
   pull_request:
     branches: [main]
   workflow_dispatch:
