@@ -225,7 +225,8 @@ function PlanningScheduler({rows}:{rows:Rec[]}){
  const chosen=lines.filter((x:any)=>scenarioLine==='All lines'||x.name===scenarioLine);
  const cycles=chosen.filter((x:any)=>x.avgCycle>0);
  const scenarioCycle=cycles.length?cycles.reduce((a:number,x:any)=>a+x.avgCycle,0)/cycles.length:0;
- const scenarioHours=Math.max(0,Number(hours)||0),scenarioShifts=Math.max(0,Number(shifts)||0),scenarioAvailability=Math.max(0,Math.min(100,Number(availability)||0)),scenarioTarget=Math.max(0,Number(target)||0);\n const scenarioCapacity=scenarioCycle>0?scenarioHours*3600*scenarioShifts*(scenarioAvailability/100)/scenarioCycle:0;
+ const scenarioHours=Math.max(0,Number(hours)||0),scenarioShifts=Math.max(0,Number(shifts)||0),scenarioAvailability=Math.max(0,Math.min(100,Number(availability)||0)),scenarioTarget=Math.max(0,Number(target)||0);
+ const scenarioCapacity=scenarioCycle>0?scenarioHours*3600*scenarioShifts*(scenarioAvailability/100)/scenarioCycle:0;
  const scenarioGap=scenarioTarget-scenarioCapacity;
  const risks=lines.flatMap((x:any)=>[
   ...(x.missing?[{priority:'Data gap',line:x.name,issue:x.missing+' record(s) missing target cycle time or planned production time'}]:[]),
