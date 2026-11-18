@@ -1,5 +1,5 @@
 import React,{useEffect,useMemo,useState}from'react';
-import {supabase,configured}from'./lib/supabase';import{translations,Lang}from'./lib/i18n';
+import {supabase,configured}from'./supabase';import{translations,Lang}from'./i18n';
 import {LayoutDashboard,Layers,Factory,ShieldCheck,Calculator,Wrench,Bot,Settings,Plus,Search,Download,Trash2,LogOut,Menu,X,Globe,Cloud,AlertTriangle,CheckCircle2,TrendingUp,Package,Activity,Upload,Save,FileSpreadsheet}from'lucide-react';
 import * as XLSX from 'xlsx';
 type Mod='dashboard'|'bom'|'production'|'quality'|'cost'|'maintenance'|'ai'|'settings';
@@ -18,7 +18,7 @@ export default function App(){
  useEffect(()=>{localStorage.setItem('fo-lang',lang);document.documentElement.dir=rtl?'rtl':'ltr';document.documentElement.lang=lang},[lang,rtl]);
  useEffect(()=>{if(!supabase)return;supabase.auth.getSession().then(({data})=>setSession(data.session));const{data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setSession(s));return()=>subscription.unsubscribe()},[]);
  useEffect(()=>{if(!session){setCompany(null);return;}loadCompany()},[session]);
- useEffect(()=>{if(configured&&session&&company)loadRows();else if(!configured){try{setRows(JSON.parse(localStorage.getItem(localKey)||'[]'))}catch{setRows([])}}},[session,company]);
+ useEffect(()=>{if(configured&&session&&company){loadRows();return;}try{setRows(JSON.parse(localStorage.getItem(localKey)||'[]'))}catch{setRows([])}},[configured,session,company]);
  async function loadCompany(){if(!supabase||!session)return;const{data,error}=await supabase.from('company_members').select('company_id,role,companies(id,name)').eq('user_id',session.user.id).limit(1).maybeSingle();if(error){setSyncMsg(error.message);return;}if(data){setCompany(data);setCompanyName((data as any).companies?.name||'My Factory')}else setCompany(null)}
  async function loadRows(){if(!supabase||!company)return;const{data,error}=await supabase.from('records').select('*').order('created_at',{ascending:false}).limit(2000);if(error)setSyncMsg(error.message);else setRows(data as Rec[]||[])}
  async function auth(signup:boolean){if(!supabase){setAuthMsg('Configure .env with Supabase URL and anon key first.');return;}setBusy(true);setAuthMsg('');const result=signup?await supabase.auth.signUp({email,password}):await supabase.auth.signInWithPassword({email,password});setBusy(false);setAuthMsg(result.error?.message|| (signup?t.signUpSuccess:'Signed in.'));if(!result.error&&!signup)setSession((await supabase.auth.getSession()).data.session)}
