@@ -222,6 +222,37 @@ function SupplierProcurementIntelligence({rows}:{rows:Rec[]}){
   return {id:r.id,supplier,po,orderDate,promise,actualDate,oq,rq,bad,unit:String(d.Unit||''),unitPrice,quote,previous,currency,status,closed,ontime,late,fill:oq?rq/oq:null,defectRate:rq?bad/rq:null,priceVariance:quote>0&&unitPrice>0?(unitPrice-quote)/quote:null};
  }).sort((a,b)=>Number(b.late)-Number(a.late)||String(a.promise).localeCompare(String(b.promise)));
  const suppliers=Object.values(supplierMap).map((x:any)=>({...x,fill:x.ordered?x.received/x.ordered:null,defectRate:x.received?x.rejected/x.received:null,onTimeRate:x.dated?x.onTime/x.dated:null})).sort((a:any,b:any)=>(b.late-a.late)||((a.onTimeRate??1)-(b.onTimeRate??1)));
+ const priceGroups:Record<string,any>={};
+ items.forEach(x=>{
+  const source=records.find(r=>r.id===x.id),d=source?.details||{};
+  const reference=String(d['Part number']||d.Reference||d['Item reference']||d['Material code']||d['Product code']||'').trim();
+  const unit=String(x.unit||'').trim();
+  if(!reference||!x.unitPrice||x.unitPrice<=0)return;
+  const key=[reference.toLowerCase(),x.currency,unit.toLowerCase(),x.supplier.toLowerCase()].join('|');
+  const g=priceGroups[key]||(priceGroups[key]={reference,unit,currency:x.currency,supplier:x.supplier,history:[],openQty:0,latestPrice:0,latestDate:''});
+  g.history.push({date:x.orderDate||source?.record_date||'',price:x.unitPrice,quote:x.quote,previous:x.previous,po:x.po,qty:x.oq,received:x.rq});
+  g.openQty+=Math.max(0,x.oq-x.rq);
+ });
+ const priceHistory=Object.values(priceGroups).map((g:any)=>{
+  g.history.sort((a:any,b:any)=>String(a.date).localeCompare(String(b.date)));
+  const first=g.history[0],last=g.history[g.history.length-1];
+  g.latestPrice=last.price;g.latestDate=last.date;
+  const baseline=first.price,change=baseline>0?(last.price-baseline)/baseline:null;
+  return {...g,firstPrice:baseline,change,latestQuote:last.quote||0,previousPrice:last.previous||0,lines:g.history.length};
+ }).sort((a:any,b:any)=>String(b.latestDate).localeCompare(String(a.latestDate)));
+ const benchmarkGroups:Record<string,any>={};
+ priceHistory.forEach((x:any)=>{
+  const key=[x.reference.toLowerCase(),x.currency,x.unit.toLowerCase()].join('|');
+  const g=benchmarkGroups[key]||(benchmarkGroups[key]={reference:x.reference,currency:x.currency,unit:x.unit,offers:[]});
+  g.offers.push(x);
+ });
+ const priceBenchmarks=Object.values(benchmarkGroups).filter((g:any)=>g.offers.length>1).flatMap((g:any)=>{
+  const low=Math.min(...g.offers.map((x:any)=>x.latestPrice));
+  return g.offers.filter((x:any)=>x.latestPrice>low).map((x:any)=>({...x,bestPrice:low,premium:x.latestPrice-low,premiumPct:low?(x.latestPrice-low)/low:null,potentialSavings:Math.max(0,x.openQty)*(x.latestPrice-low)}));
+ }).sort((a:any,b:any)=>b.potentialSavings-a.potentialSavings);
+ const savingsByCurrency:Record<string,number>={};
+ priceBenchmarks.forEach((x:any)=>{savingsByCurrency[x.currency]=(savingsByCurrency[x.currency]||0)+x.potentialSavings;});
+
  const onTimeRate=dated?onTime/dated:null,fillRate=ordered?received/ordered:null,defectRate=received?rejected/received:null;
  const recommendations:string[]=[];
  if(lateOpen)recommendations.push(lateOpen+' open PO line(s) are past the promised delivery date. Escalate supplier confirmation and assess production coverage.');
@@ -238,6 +269,10 @@ function SupplierProcurementIntelligence({rows}:{rows:Rec[]}){
   add('PO delivery detail',items.map(x=>({'Supplier':x.supplier,'Purchase order':x.po,'Order date':x.orderDate,'Promised delivery date':x.promise,'Actual delivery date':x.actualDate,'Ordered quantity':x.oq,'Received quantity':x.rq,'Rejected quantity':x.bad,'Unit':x.unit,'Fulfilment (%)':x.fill===null?'':Number((x.fill*100).toFixed(1)),'On time':x.promise&&x.actualDate?(x.ontime?'Yes':'No'):'Not assessed','Status':x.status,'Late open':x.late?'Yes':'No'})), 'No PO delivery data');
   add('Spend by currency',Object.values(currencies).map((x:any)=>({'Currency':x.currency,'Received quantity':x.qty,'Recorded receipt value':Number(x.spend.toFixed(2)),'Costed PO lines':x.lines})), 'Enter received quantity, unit price and currency');
   add('Price comparison',items.filter(x=>x.priceVariance!==null).map(x=>({'Supplier':x.supplier,'PO':x.po,'Currency':x.currency,'Quoted unit price':x.quote,'Actual unit price':x.unitPrice,'Variance (%)':Number((x.priceVariance!*100).toFixed(2)),'Previous unit price':x.previous})), 'Enter quoted and actual unit prices');
+
+  add('Purchase price history',priceHistory.flatMap((x:any)=>x.history.map((h:any)=>({'Part / reference':x.reference,'Supplier':x.supplier,'Currency':x.currency,'Unit':x.unit,'Date':h.date,'PO':h.po,'Unit price':h.price,'Quoted unit price':h.quote||'','Previous unit price':h.previous||'','Ordered quantity':h.qty,'Received quantity':h.received}))), 'No dated purchase-price history');
+  add('Supplier price benchmark',priceBenchmarks.map((x:any)=>({'Part / reference':x.reference,'Supplier':x.supplier,'Currency':x.currency,'Unit':x.unit,'Current unit price':x.latestPrice,'Best comparable price':x.bestPrice,'Premium per unit':x.premium,'Premium (%)':x.premiumPct===null?'':Number((x.premiumPct*100).toFixed(2)),'Open quantity':x.openQty,'Potential savings':Number(x.potentialSavings.toFixed(2))})), 'Need at least two suppliers with the same part, currency and unit');
+  add('Savings opportunities',Object.entries(savingsByCurrency).map(([currency,value])=>({'Currency':currency,'Indicative savings on open quantities':Number(value.toFixed(2))})), 'No comparable open purchase quantities');
   add('Recommendations',recommendations.map((x,i)=>({Priority:i+1,Recommendation:x})), 'No recommendations');
   XLSX.writeFile(wb,'FactoryOps_Supplier_Performance_Procurement_Intelligence.xlsx');
  }
@@ -249,6 +284,12 @@ function SupplierProcurementIntelligence({rows}:{rows:Rec[]}){
  <div className="twocol"><section className="panel"><h3>Supplier scorecard</h3>{suppliers.length?<div className="tablewrap"><table><thead><tr><th>Supplier</th><th>PO lines</th><th>Fulfilment</th><th>On-time</th><th>Reject rate</th><th>Open / late</th></tr></thead><tbody>{suppliers.map((x:any)=><tr key={x.supplier}><td><b>{x.supplier}</b><small>{x.code}{x.country?' · '+x.country:''}</small></td><td>{x.records}</td><td>{x.fill===null?'—':(x.fill*100).toFixed(1)+'%'}</td><td>{x.onTimeRate===null?'—':(x.onTimeRate*100).toFixed(1)+'%'}</td><td>{x.defectRate===null?'—':(x.defectRate*100).toFixed(2)+'%'}</td><td>{x.open} / <span className={x.late?'pill red':'pill green'}>{x.late}</span></td></tr>)}</tbody></table></div>:<p className="muted">Import supplier PO lines with Supplier, Purchase order, ordered/received quantities and delivery dates to build the scorecard.</p>}</section>
  <section className="panel"><h3>Procurement delivery priorities</h3>{items.filter(x=>x.late||(!x.closed&&x.oq>x.rq)).slice(0,12).length?items.filter(x=>x.late||(!x.closed&&x.oq>x.rq)).slice(0,12).map(x=><div className="metric" key={x.id}><span><b>{x.supplier} · {x.po||'PO not specified'}</b><small>{x.late?'Late against promised date':'Open balance'} · {money(Math.max(0,x.oq-x.rq))} {x.unit} outstanding</small></span><b>{x.promise||'No due date'}</b></div>):<p className="muted">No open delivery priority identified from the recorded PO lines.</p>}</section></div>
  <div className="twocol" style={{marginTop:18}}><section className="panel"><h3>Recorded procurement spend by currency</h3><p className="muted">Receipt value = received quantity × actual unit price. Currencies are intentionally kept separate.</p>{Object.values(currencies).length?Object.values(currencies).map((x:any)=><div className="metric" key={x.currency}><span>{x.currency} · {x.lines} costed PO lines</span><b>{money(x.spend)} {x.currency}</b></div>):<p className="muted">Enter received quantity, unit price and currency.</p>}</section><section className="panel"><h3>Supplier price variance</h3>{items.filter(x=>x.priceVariance!==null).length?items.filter(x=>x.priceVariance!==null).slice(0,12).map(x=><div className="metric" key={x.id}><span>{x.supplier} · {x.po||'PO'}<small>{x.currency} · Quote {money(x.quote)} / Actual {money(x.unitPrice)}</small></span><b style={{color:x.priceVariance!>0?'#dc2626':x.priceVariance!<0?'#16a34a':undefined}}>{x.priceVariance!>0?'+':''}{(x.priceVariance!*100).toFixed(1)}%</b></div>):<p className="muted">Enter Quoted unit price and Unit price to compare purchasing price against quotation.</p>}</section></div>
+
+ <section className="panel" style={{marginTop:18}}><div className="panelhead"><div><div className="eyebrow">PURCHASING COST & PRICE INTELLIGENCE 3.2</div><h3>Purchase-price intelligence</h3><p>Track recorded price movement and compare suppliers only for matching part reference, currency and unit.</p></div></div>
+ <div className="statgrid" style={{gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))'}}><Stat icon={<Activity/>} label="Price history groups" value={priceHistory.length} sub="Supplier · part · currency · unit"/><Stat icon={<TrendingUp/>} label="Price increases" value={priceHistory.filter((x:any)=>x.change!==null&&x.change>0.001).length} sub="First recorded vs latest price"/><Stat icon={<Target/>} label="Comparable premiums" value={priceBenchmarks.length} sub="Above lowest comparable supplier"/><Stat icon={<Calculator/>} label="Potential savings" value={Object.keys(savingsByCurrency).length?Object.entries(savingsByCurrency).map(([c,v])=>money(v)+' '+c).join(' · '):'—'} sub="Indicative open-quantity opportunity"/></div>
+ <div className="twocol" style={{marginTop:16}}><div><h4>Supplier price movement</h4>{priceHistory.length?<div className="tablewrap"><table><thead><tr><th>Part / reference</th><th>Supplier</th><th>Currency / unit</th><th>First price</th><th>Latest price</th><th>Movement</th><th>History</th></tr></thead><tbody>{priceHistory.slice(0,15).map((x:any,i:number)=><tr key={i}><td><b>{x.reference}</b></td><td>{x.supplier}</td><td>{x.currency} / {x.unit||'—'}</td><td>{money(x.firstPrice)}</td><td>{money(x.latestPrice)}</td><td style={{color:x.change!==null&&x.change>0?'#dc2626':x.change!==null&&x.change<0?'#16a34a':undefined}}>{x.change===null?'—':(x.change>0?'+':'')+(x.change*100).toFixed(1)+'%'}</td><td>{x.lines} lines</td></tr>)}</tbody></table></div>:<p className="muted">Add Part number (or Reference), Unit price, Currency and Order date to supplier PO imports to build price history.</p>}</div>
+ <div><h4>Comparable supplier price gaps</h4>{priceBenchmarks.length?<div className="tablewrap"><table><thead><tr><th>Part</th><th>Supplier</th><th>Price</th><th>Best price</th><th>Premium</th><th>Open qty</th><th>Opportunity</th></tr></thead><tbody>{priceBenchmarks.slice(0,15).map((x:any,i:number)=><tr key={i}><td>{x.reference}</td><td>{x.supplier}</td><td>{money(x.latestPrice)} {x.currency}</td><td>{money(x.bestPrice)} {x.currency}</td><td>{x.premiumPct===null?'—':(x.premiumPct*100).toFixed(1)+'%'}</td><td>{money(x.openQty)} {x.unit}</td><td><b>{money(x.potentialSavings)} {x.currency}</b></td></tr>)}</tbody></table></div>:<p className="muted">Comparable benchmarking needs at least two suppliers quoting or purchasing the same part, currency and unit. No cross-currency or mixed-unit comparison is made.</p>}</div></div>
+ <p className="muted" style={{marginTop:12}}>Savings are indicative only: open quantity × price premium versus the lowest comparable supplier. They are not confirmed savings or a purchase recommendation; check quality, delivery, MOQ, terms and supplier capacity before sourcing changes.</p></section>
  <section className="panel" style={{marginTop:18}}><h3>Automatic supplier risk & improvement actions</h3>{recommendations.map((x,i)=><div className="insight" key={i}><TrendingUp size={18}/><div><b>Priority {i+1}</b><p>{x}</p></div></div>)}<div className="notice" style={{marginTop:14}}><AlertTriangle size={17}/><span>On-time delivery is calculated only where both promised and actual delivery dates exist. Open late orders require a promised date and no actual receipt date. Rejection rate uses rejected quantity ÷ received quantity. Spend is an indicative receipt value and remains separated by currency; supplier ratings are not inferred from missing data.</span></div></section>
  </>;
 }
