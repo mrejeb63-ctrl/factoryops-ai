@@ -52,10 +52,49 @@ as $$ declare new_id uuid; begin
 end $$;
 grant execute on function public.create_company(text) to authenticated;
 grant execute on function public.is_company_member(uuid) to authenticated;
-create policy "Members can view their companies" on public.companies for select to authenticated using(public.is_company_member(id));
-create policy "Members can view memberships in their companies" on public.company_members for select to authenticated using(public.is_company_member(company_id));
-create policy "Admins can add members" on public.company_members for insert to authenticated with check(public.is_company_admin(company_id));
-create policy "Members can read company records" on public.records for select to authenticated using(public.is_company_member(company_id));
-create policy "Members can create company records" on public.records for insert to authenticated with check(public.is_company_member(company_id));
-create policy "Members can update company records" on public.records for update to authenticated using(public.is_company_member(company_id)) with check(public.is_company_member(company_id));
-create policy "Admins and managers can delete records" on public.records for delete to authenticated using(exists(select 1 from public.company_members m where m.company_id=records.company_id and m.user_id=auth.uid() and m.role in ('admin','manager')));
+-- Policies are recreated so this schema can be safely re-applied to an existing project.
+drop policy if exists "Members can view their companies" on public.companies;
+drop policy if exists "Members can view memberships in their companies" on public.company_members;
+drop policy if exists "Admins can add members" on public.company_members;
+drop policy if exists "Members can read company records" on public.records;
+drop policy if exists "Members can create company records" on public.records;
+drop policy if exists "Members can update company records" on public.records;
+drop policy if exists "Admins and managers can delete records" on public.records;
+
+create policy "Members can view their companies" on public.companies
+ for select to authenticated using(public.is_company_member(id));
+
+create policy "Members can view memberships in their companies" on public.company_members
+ for select to authenticated using(public.is_company_member(company_id));
+
+-- Membership invitations are not implemented in this MVP. Do not allow direct
+-- client-side membership inserts or client-selected role assignment.
+-- The create_company() security-definer function creates only the owner's admin membership.
+
+create policy "Members can read company records" on public.records
+ for select to authenticated using(public.is_company_member(company_id));
+
+create policy "Operators and above can create company records" on public.records
+ for insert to authenticated with check (
+  exists(select 1 from public.company_members m
+   where m.company_id=records.company_id and m.user_id=auth.uid()
+   and m.role in ('admin','manager','operator'))
+ );
+
+create policy "Operators and above can update company records" on public.records
+ for update to authenticated using (
+  exists(select 1 from public.company_members m
+   where m.company_id=records.company_id and m.user_id=auth.uid()
+   and m.role in ('admin','manager','operator'))
+ ) with check (
+  exists(select 1 from public.company_members m
+   where m.company_id=records.company_id and m.user_id=auth.uid()
+   and m.role in ('admin','manager','operator'))
+ );
+
+create policy "Admins and managers can delete records" on public.records
+ for delete to authenticated using (
+  exists(select 1 from public.company_members m
+   where m.company_id=records.company_id and m.user_id=auth.uid()
+   and m.role in ('admin','manager'))
+ );
