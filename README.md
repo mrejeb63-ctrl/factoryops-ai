@@ -19,6 +19,7 @@ Live web app: https://mrejeb63-ctrl.github.io/factoryops-ai/
 - Added Capacitor 8.6.2 foundations for Android and iOS using one shared application codebase.
 - Added native build mode with relative asset paths for packaged WebViews.
 - Disabled hosted PWA service-worker registration inside native Capacitor shells.
+- Added multi-company workspace switching and active-company record scoping in cloud mode.
 - Added manual/tag-triggered mobile CI for an Android debug APK and unsigned iOS simulator preview.
 - Expanded PWA metadata and added public privacy, terms and support pages.
 - Connected optional Supabase public project variables to web and mobile build workflows. Never place a service-role key in a client build.

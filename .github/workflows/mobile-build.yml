@@ -3,8 +3,17 @@ name: Build FactoryOps AI mobile previews
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     tags:
       - 'mobile-v*'
+    paths:
+      - 'App.tsx'
+      - 'main.tsx'
+      - 'style.css'
+      - 'package.json'
+      - 'vite.config.ts'
+      - 'capacitor.config.ts'
+      - '.github/workflows/mobile-build.yml'
 
 permissions:
   contents: read

@@ -1,5 +1,5 @@
 const BASE_URL = new URL('./', self.location.href);
-const CACHE_NAME = 'factoryops-v1-2';
+const CACHE_NAME = 'factoryops-v1-3';
 const APP_SHELL = [
   BASE_URL.href,
   new URL('manifest.webmanifest', BASE_URL).href,
