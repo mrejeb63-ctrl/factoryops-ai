@@ -1,6 +1,11 @@
-# FactoryOps AI 1.1
+# FactoryOps AI 1.2
 
 Responsive React + TypeScript PWA for industrial operations. Includes BOM, Production, Quality, Cost, Maintenance, rule-based operational insights, four UI languages (English, French, Arabic/RTL, German), Excel import/export, local browser storage, and optional Supabase cloud authentication and company-scoped records.
+
+## Version 1.2 improvements
+
+- Expanded the Supabase `records.module` constraint to support BOM, Production, Quality, Cost, Inventory, Suppliers, Maintenance, Actions and Risks. The previous schema allowed only five modules and rejected cloud saves from the newer modules.
+- Clarified the current MVP boundaries and release validation requirements.
 
 ## Version 1.1 fixes
 
@@ -47,12 +52,29 @@ The current workflow intentionally builds without Supabase variables, so the loc
 
 ## Modules
 
-- **BOM:** part number, description, revision, quantity, unit, master BOM, validation status.
-- **Production:** production line, planned/actual quantity, good/scrap parts, shift, cycle time.
-- **Quality:** NCR, defect category, severity, root cause, corrective action, owner, due date.
-- **Cost:** cost category, quantity, unit cost, currency, cost center, reference.
-- **Maintenance:** equipment, maintenance type, downtime, technician, next due date, work order.
-- **AI Assistant:** rule-based production/BOM/quality/maintenance observations.
+- **Dashboard:** cross-module operating KPIs and operational overview.
+- **BOM Manager:** product and part classification, master BOM, validation, approval, blocking, production status, accuracy and costing references.
+- **Production:** line/workstation, operation, operator, order/batch, planned/actual/good/scrap quantities, usage, shift, cycle time and downtime.
+- **Quality:** NCR, defect, severity, containment, root cause, corrective action, owner, due date and effectiveness.
+- **Cost Control:** cost categories, quantities, unit/total cost, currency, period and production-linked variance intelligence.
+- **Inventory & Material Flow:** stock, allocation, safety/reorder levels, replenishment, lead time, supplier exposure and currency-separated stock value.
+- **Supplier Performance & Procurement:** purchasing price, supplier risk, audit/qualification, CAPA, capacity/continuity, scorecards, benchmarking, portfolio, reviews, contract renewal and commercial exposure.
+- **Maintenance:** equipment, maintenance type, downtime, technician, next due date and work order, with reliability intelligence.
+- **Actions:** operational action tracking and follow-up.
+- **Risk & Opportunities:** operational risk and opportunity register.
+- **AI Assistant:** deterministic, rule-based operational observations; no generative AI API is connected.
+- **Settings:** language, workspace and optional cloud configuration.
+
+Only data-bearing modules are stored as records in Supabase. Dashboard, AI Assistant and Settings are application views/tools, not record modules.
+
+## Data and release notes
+
+- The app is currently published as a web app/PWA through GitHub Pages. It is not published in Google Play or the Apple App Store.
+- Local browser storage is device/browser-specific. Export and securely back up important data before changing devices, clearing browser data or switching storage modes.
+- Optional Supabase cloud mode requires applying the root-level `schema.sql` in the Supabase SQL Editor and configuring the public URL/anon key as GitHub Actions variables. Do not use a service-role key in the browser.
+- The updated schema accepts all data-bearing modules. Existing Supabase projects must re-run the updated SQL file to apply the module constraint change.
+- Cloud authentication, tenant isolation, role enforcement and backup/restore still require testing in the owner's configured Supabase project before business-critical production use.
+- The published GitHub Pages app is suitable for evaluation and controlled pilot use; it should not be represented as a certified ERP/MES/QMS or production-certified SaaS until those checks are completed.
 
 ## Build locally
 
