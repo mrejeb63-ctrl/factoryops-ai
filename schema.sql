@@ -15,7 +15,7 @@ create table if not exists public.company_members (
 create table if not exists public.records (
  id uuid primary key default gen_random_uuid(),
  company_id uuid not null references public.companies(id) on delete cascade,
- module text not null check (module in ('bom','production','quality','cost','maintenance')),
+ module text not null check (module in ('bom','production','quality','cost','inventory','suppliers','maintenance','actions','risks')),
  title text not null check (char_length(title) between 1 and 240),
  status text not null default 'Open',
  record_date date not null default current_date,
@@ -25,6 +25,11 @@ create table if not exists public.records (
  created_at timestamptz not null default now(),
  updated_at timestamptz not null default now()
 );
+-- Keep cloud storage aligned with every data-bearing module in App.tsx.
+-- AI Assistant, Dashboard and Settings are views/tools, not record modules.
+alter table public.records drop constraint if exists records_module_check;
+alter table public.records add constraint records_module_check
+ check (module in ('bom','production','quality','cost','inventory','suppliers','maintenance','actions','risks'));
 create index if not exists records_company_module_date_idx on public.records(company_id,module,record_date desc);
 create index if not exists members_user_idx on public.company_members(user_id);
 alter table public.companies enable row level security;
