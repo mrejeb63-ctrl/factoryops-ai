@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: 'com.factoryopsai.app',
   appName: 'FactoryOps AI',
   webDir: 'dist',
-  bundledWebRuntime: false,
   ios: { contentInset: 'automatic' },
 };
 
