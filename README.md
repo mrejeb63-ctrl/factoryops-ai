@@ -88,7 +88,7 @@ npm run build
 
 ## PWA / Android
 
-After the GitHub Pages deployment succeeds, open the published HTTPS URL in Chrome on Android. Open Chrome's menu and choose **Install app** or **Add to Home screen**. Local data is specific to that browser/device. Offline writes and background cloud synchronization are not implemented.
+After the GitHub Pages deployment succeeds, open the published HTTPS URL in Chrome on Android. Open Chrome's menu and choose **Install app** or **Add to Home screen**. Local data is specific to that browser/device. The PWA caches the app shell and same-origin static assets after they have been loaded online. Local browser records can be edited while the cached app is available; cloud-backed operations require connectivity. Offline cloud write queues and background synchronization are not implemented.
 
 ## Validation
 
