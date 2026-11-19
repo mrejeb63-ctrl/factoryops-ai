@@ -28,3 +28,18 @@ html{min-height:100%;background:#f2f4ff}body{min-height:100vh;background:radial-
 .content{padding:18px 13px calc(30px + env(safe-area-inset-bottom,0px))}.welcome{border-radius:17px;padding:20px 18px}.welcome h1{font-size:23px;line-height:1.2}.stat{border-radius:15px;min-width:0}.statValue{font-size:23px}.panel{border-radius:15px;padding:16px}.chartPanel{padding:15px 12px 10px}.pagehead{gap:13px}.headbuttons{gap:7px}.headbuttons button{min-height:40px}.tablewrap{overscroll-behavior-x:contain}.modalback{align-items:flex-end;padding:8px}.modal{max-height:88dvh;border-radius:18px 18px 12px 12px}
 }
 @media(min-width:701px) and (max-width:1050px){.topbar{padding-left:22px;padding-right:22px}}
+
+/* Rich KPI tiles inspired by the supplied live-production reference */
+.statgrid>.stat:nth-child(4n+1){background:linear-gradient(135deg,#536fe0 0%,#354aa8 100%);border-color:#637ce9;color:#fff}
+.statgrid>.stat:nth-child(4n+2){background:linear-gradient(135deg,#42c7d7 0%,#238da9 100%);border-color:#53d2df;color:#fff}
+.statgrid>.stat:nth-child(4n+3){background:linear-gradient(135deg,#27c9a5 0%,#13866f 100%);border-color:#45d8b5;color:#fff}
+.statgrid>.stat:nth-child(4n){background:linear-gradient(135deg,#f0bd62 0%,#bb7a2d 100%);border-color:#f2c778;color:#fff}
+.statgrid>.stat:nth-child(n) .statValue,.statgrid>.stat:nth-child(n) .statLabel,.statgrid>.stat:nth-child(n) .statSub{color:#fff;position:relative;z-index:1}
+.statgrid>.stat:nth-child(n) .statSub{opacity:.82}
+.statgrid>.stat:nth-child(n) .statIcon{background:#ffffff25;color:#fff;border:1px solid #ffffff30;position:relative;z-index:1}
+.statgrid>.stat:after{background:radial-gradient(circle,#ffffff20,transparent 70%)}
+.statgrid>.stat:nth-child(n):hover{filter:saturate(1.08);box-shadow:0 14px 28px #303b7c25}
+.chartPanel{box-shadow:0 9px 25px #303b7c10}
+.chartPanel .recharts-cartesian-grid-horizontal line{stroke:#e8ebfa}
+.chartPanel .recharts-cartesian-axis-tick text{fill:#7c87ad}
+@media(max-width:700px){.statgrid>.stat{padding:14px 13px;min-height:116px}.statgrid>.stat .statValue{font-size:24px}.statgrid>.stat .statLabel{font-size:10px}}
