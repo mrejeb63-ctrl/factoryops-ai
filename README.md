@@ -80,7 +80,7 @@ Only data-bearing modules are stored as records in Supabase. Dashboard, AI Assis
 
 ## Build locally
 
-Requires Node.js 20+ and npm:
+Requires Node.js 22+ and npm:
 
 ```bash
 npm install
