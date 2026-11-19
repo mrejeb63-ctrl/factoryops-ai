@@ -1,6 +1,6 @@
 import React,{useEffect,useMemo,useState}from'react';
 import {supabase,configured}from'./supabase';import{translations,Lang}from'./i18n';
-import {LayoutDashboard,Layers,Factory,ShieldCheck,Calculator,Wrench,Bot,Settings,Plus,Search,Download,Trash2,LogOut,Menu,X,Globe,Cloud,AlertTriangle,CheckCircle2,TrendingUp,Package,Activity,Upload,Save,FileSpreadsheet,ClipboardCheck,Target,Truck,Clock}from'lucide-react';
+import {LayoutDashboard,Layers,Factory,ShieldCheck,Calculator,Wrench,Bot,Settings,Plus,Search,Download,Trash2,LogOut,Menu,X,Globe,Cloud,AlertTriangle,CheckCircle2,TrendingUp,Package,Activity,Upload,Save,FileSpreadsheet,ClipboardCheck,Target,Truck,Clock,Calendar,Users}from'lucide-react';
 import * as XLSX from 'xlsx';
 import {ResponsiveContainer,AreaChart,Area,CartesianGrid,XAxis,YAxis,Tooltip,BarChart,Bar,PieChart,Pie,Cell,Legend} from 'recharts';
 type Mod='dashboard'|'bom'|'production'|'quality'|'cost'|'inventory'|'suppliers'|'maintenance'|'actions'|'risks'|'ai'|'settings';
