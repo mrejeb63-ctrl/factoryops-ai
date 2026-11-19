@@ -18,7 +18,7 @@ This roadmap separates repository work that can be automated from owner-controll
 - [x] Optional public Supabase client variables passed to the build without embedding a service-role key.
 
 **Release acceptance**
-- [x] Most recent confirmed Pages build and deployment for commit d1728dc2e0288cd1c3814535d7d6504a6c638af3 succeeded.
+- [x] Most recent confirmed Pages build and deployment for commit 337322559a96d95002e192eb22afdada713f2a03 succeeded.
 - [ ] Validate PWA installation and offline local-mode behavior on physical Android and iOS devices.
 - [ ] Complete owner-specific cloud authentication, RLS and recovery tests before business-critical rollout.
 
@@ -29,7 +29,7 @@ This roadmap separates repository work that can be automated from owner-controll
 - [x] Native-relative Vite asset build.
 - [x] Android CI project generation and debug APK pipeline.
 - [x] CI SDK setup updated to the supported Android setup action.
-- [ ] Confirm the current Android debug APK workflow finishes and upload artifact is available.
+- [x] Android debug APK workflow completed successfully and uploaded the preview artifact (run 44496495031).
 - [ ] Add production app icons and final Android screenshots.
 - [ ] Add release signing configuration after the owner securely creates and stores the upload key.
 
