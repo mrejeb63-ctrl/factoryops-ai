@@ -2,6 +2,7 @@
 
 ## Build checks
 - [ ] `npm install` completes without dependency errors.
+- [ ] `npm audit --audit-level=high` reports no high/critical vulnerabilities.
 - [ ] `npm run build` completes successfully.
 - [ ] `npm run preview` serves the production build.
 
