@@ -1,13 +1,29 @@
 {
+  "id": "./",
   "name": "FactoryOps AI",
   "short_name": "FactoryOps",
-  "description": "Industrial operations management",
+  "description": "Industrial operations intelligence for manufacturing teams: BOM, production, quality, cost, inventory, suppliers and maintenance.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
   "background_color": "#f4f7fb",
   "theme_color": "#10243a",
+  "categories": [
+    "business",
+    "productivity",
+    "utilities"
+  ],
   "icons": [
-    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
   ]
 }

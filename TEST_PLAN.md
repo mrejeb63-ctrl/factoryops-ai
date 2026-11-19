@@ -1,48 +1,70 @@
 # FactoryOps AI release validation plan
 
-## Build checks
-- [ ] `npm install` completes without dependency errors.
-- [ ] `npm audit --audit-level=high` reports no high/critical vulnerabilities.
-- [ ] `npm run build` completes successfully.
-- [ ] `npm run preview` serves the production build.
+## Web/PWA CI
+- [ ] Dependency installation and high/critical vulnerability audit pass.
+- [ ] TypeScript/Vite production build succeeds.
+- [ ] GitHub Pages deployment succeeds.
+- [ ] Manifest, icon and service worker load from the GitHub Pages project subpath.
+- [ ] Fresh visitor can use local mode without Supabase configuration.
+- [ ] Install PWA from HTTPS Chrome and relaunch.
+- [ ] Verify desktop, tablet and Android viewport layouts.
+- [ ] Check browser console for uncaught runtime errors during core workflows.
 
 ## Local mode
-- [ ] Open app with no `.env`; local workspace status is shown.
-- [ ] Create a BOM record with a part number and status Approved.
-- [ ] Create production record with planned, actual, good and scrap quantities.
-- [ ] Create quality NCR, cost record, inventory item, supplier record, maintenance record, action and risk record.
+- [ ] Create BOM, production, quality, cost, inventory, supplier, maintenance, action and risk records.
 - [ ] Refresh browser; local records remain.
 - [ ] Search records; export workbook; import a sample workbook.
 - [ ] Edit and delete records.
 - [ ] Switch EN/FR/AR/DE; Arabic uses RTL direction.
-- [ ] Check desktop, tablet and Android viewport layouts.
-- [ ] Install PWA from HTTPS Chrome and relaunch.
+- [ ] Export a workbook and re-import it into a clean test workspace; compare counts and key fields.
 
-## Cloud mode (requires Supabase project)
-- [ ] Apply the root-level `schema.sql` in the Supabase SQL Editor (it is safe to re-apply).
-- [ ] Create account and sign in.
-- [ ] Create company using `create_company` RPC.
-- [ ] Create/read/update records.
-- [ ] Sign out and sign in again; records persist.
-- [ ] Use a second account with no membership; it cannot read first company's records.
-- [ ] Verify a user cannot read, insert, update or delete a record for a company they do not belong to.
-- [ ] Verify viewer can read but cannot create, update or delete records.
-- [ ] Verify operator can read, create and update but cannot delete records.
-- [ ] Verify manager can read, create, update and delete records.
-- [ ] Verify admin can read, create, update and delete records.
-- [ ] Verify an authenticated user cannot add themselves or another user to a company by direct `company_members` insert.
-- [ ] Test expired session and email-confirmation flow.
+## Cloud mode (requires the owner's Supabase project)
+- [ ] Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY as GitHub Actions repository variables.
+- [ ] Confirm web and mobile workflows receive only these public client values.
+- [ ] Apply root-level schema.sql in the Supabase SQL Editor.
+- [ ] Create account, sign in and create company using create_company RPC.
+- [ ] Create/read/update records; sign out and sign in again.
+- [ ] Use a second account with no membership; it cannot read the first company's records.
+- [ ] Verify cross-company SELECT/INSERT/UPDATE/DELETE attempts are rejected by RLS.
+- [ ] Verify viewer, operator, manager and admin permissions.
+- [ ] Verify authenticated users cannot self-assign memberships or roles.
+- [ ] Test expired session, email-confirmation flow, backup and restore.
 
-## Release gate
-- [ ] Confirm the latest GitHub Actions build and Pages deployment succeeded.
-- [ ] Open the published URL in desktop Chrome/Edge and Android Chrome.
-- [ ] Verify browser console has no uncaught runtime errors during the core workflows.
-- [ ] Confirm manifest, icon and service worker load from the GitHub Pages project subpath.
-- [ ] Confirm a fresh visitor can use local mode without Supabase configuration.
-- [ ] Export a workbook and re-import it into a test workspace; compare record counts and key fields.
-- [ ] Confirm a backup/export is available before testing data migration or storage-mode changes.
+## Android preview and store release
+- [ ] Run Actions → Build FactoryOps AI mobile previews.
+- [ ] Install Android debug APK on physical Android devices.
+- [ ] Test login, local mode, data entry, charts, import/export, keyboard, orientation and back navigation.
+- [ ] Test offline local-mode behavior and cloud-mode connectivity handling.
+- [ ] Generate production app icons and screenshots.
+- [ ] Create and securely back up Android upload/signing key.
+- [ ] Build and validate signed Android App Bundle (AAB).
+- [ ] Complete Play Console app content, Data safety, privacy policy, target audience and listing.
+- [ ] For eligible new personal accounts, complete required 12-tester/14-day closed test and apply for production access.
+- [ ] Submit signed release to Play Console review.
+
+## iOS preview and store release
+- [ ] Run mobile workflow and confirm unsigned simulator build succeeds.
+- [ ] Test supported iPhone/iPad simulators and physical devices.
+- [ ] Validate safe areas, keyboard, navigation, file import/export and authentication redirects.
+- [ ] Generate App Store icons and screenshots.
+- [ ] Enroll in Apple Developer Program and configure bundle identifier, certificates and provisioning profiles.
+- [ ] Build signed archive and upload to App Store Connect.
+- [ ] Complete privacy details, age rating, review notes and product page metadata.
+- [ ] Distribute through TestFlight and collect feedback.
+- [ ] Submit for App Review.
+
+## Legal, privacy and operational release gates
+- [ ] Confirm legal operator name, business address, support contact and governing jurisdiction.
+- [ ] Review privacy/terms pages against real hosting, analytics, authentication and retention configuration.
+- [ ] Publish support and incident-response process.
+- [ ] Define data ownership, retention, deletion, backup and restoration responsibilities.
+- [ ] Complete security review of Supabase RLS, exposed configuration and account lifecycle.
+- [ ] Confirm no service-role key or secret is included in client artifacts.
+- [ ] Define monitored production environment and recovery objectives before business-critical rollout.
 
 ## Known limitations
-- This source package has not been connected to your Supabase instance, deployed, or tested against your production environment. Do not treat cloud mode as validated until the cloud tests above pass.
-- Role-aware controls and membership invitations are not fully implemented in the frontend. The database RLS policies enforce read/write/delete permissions; invitations/member administration remain unavailable.
-- Offline writes and background synchronization are not implemented.
+- Mobile workflow creates an Android debug APK and unsigned iOS Simulator build only. It does not sign, notarize or submit store releases.
+- Store release requires developer accounts, legal declarations, privacy disclosures, signing credentials and human review.
+- Cloud mode is not validated until the owner's Supabase project passes tenant-isolation, role, backup and restore tests.
+- Local browser storage is device/browser-specific; offline cloud write queues and background synchronization are not implemented.
+- Invitations/member administration, billing, external ERP integrations, advanced audit trails and production monitoring are not included.

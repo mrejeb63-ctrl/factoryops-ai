@@ -1,11 +1,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// GitHub Pages serves this project below /factoryops-ai/.
-// Keep local development and preview rooted at /.
+// GitHub Pages uses a project subpath; native WebViews load local files.
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
-  base: mode === 'production' ? '/factoryops-ai/' : '/',
+  base: mode === 'native' ? './' : mode === 'production' ? '/factoryops-ai/' : '/',
   build: {
     rollupOptions: {
       output: {

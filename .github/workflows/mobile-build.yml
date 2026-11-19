@@ -1,0 +1,102 @@
+name: Build FactoryOps AI mobile previews
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'mobile-v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-build-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  android-preview:
+    name: Android debug APK
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Install dependencies
+        run: npm install
+      - name: Dependency security audit
+        run: npm audit --audit-level=high
+      - name: Build native web assets
+        run: npm run build:native
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+      - name: Generate Android project
+        run: npx cap add android
+      - name: Sync Android project
+        run: npx cap sync android
+      - name: Build debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug
+      - name: Upload Android preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: factoryops-android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  ios-simulator:
+    name: iOS simulator build (unsigned)
+    runs-on: macos-26
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Dependency security audit
+        run: npm audit --audit-level=high
+      - name: Build native web assets
+        run: npm run build:native
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+      - name: Generate iOS project
+        run: npx cap add ios
+      - name: Sync iOS project
+        run: npx cap sync ios
+      - name: Build iOS simulator app
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -derivedDataPath ios/build \
+            CODE_SIGNING_ALLOWED=NO build
+      - name: Package simulator build
+        run: |
+          cd ios/build/Build/Products
+          zip -r factoryops-ios-simulator.zip Debug-iphonesimulator/App.app
+      - name: Upload iOS simulator preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: factoryops-ios-simulator-unsigned
+          path: ios/build/Build/Products/factoryops-ios-simulator.zip
+          if-no-files-found: error
+          retention-days: 14
