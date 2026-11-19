@@ -46,7 +46,7 @@ This roadmap separates repository work that can be automated from owner-controll
 - [x] Capacitor 8.6.2 iOS platform dependency.
 - [x] iOS project generation and sync in CI.
 - [x] Unsigned iOS Simulator build pipeline scaffold.
-- [ ] Confirm the latest Xcode project-based simulator build and archive artifact succeed.
+- [x] Xcode project-based iOS Simulator build succeeded and uploaded the unsigned preview artifact (run 44496495031).
 - [ ] Add production App Store icon and iPhone/iPad screenshots.
 - [ ] Add signing/archive workflow only after Apple certificates and provisioning profiles are securely available.
 
