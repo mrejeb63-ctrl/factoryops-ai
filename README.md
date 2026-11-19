@@ -101,6 +101,12 @@ Review and adapt these pages to the final legal operator, actual Supabase config
 
 Requires Node.js 22+. Run npm install, npm run dev and npm run build. For native project generation, use the native build and Capacitor CLI on a configured Android/iOS development machine. Capacitor 8 requires current supported native toolchains; see the official Capacitor environment setup guide.
 
+## Publishing roadmap and store assets
+
+- [Publishing roadmap](PUBLISHING_ROADMAP.md)
+- [Google Play and App Store listing draft](STORE_LISTING.md)
+- [Release validation plan](TEST_PLAN.md)
+
 ## Validation
 
 See TEST_PLAN.md. A successful CI build does not prove device compatibility, cloud tenant isolation, store-policy compliance or production readiness.
