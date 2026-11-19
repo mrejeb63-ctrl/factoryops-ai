@@ -5,6 +5,8 @@ Responsive React + TypeScript PWA for industrial operations. Includes BOM, Produ
 ## Version 1.2 improvements
 
 - Expanded the Supabase `records.module` constraint to support BOM, Production, Quality, Cost, Inventory, Suppliers, Maintenance, Actions and Risks. The previous schema allowed only five modules and rejected cloud saves from the newer modules.
+- Updated SheetJS to the patched 0.20.3 distribution from the official SheetJS CDN; the public npm registry's legacy 0.18.5 package is affected by spreadsheet parsing advisories.
+- Added role-aware record controls: viewers are read-only, operators can create/update, and managers/admins can delete; Supabase RLS remains the enforcement layer.
 - Clarified the current MVP boundaries and release validation requirements.
 
 ## Version 1.1 fixes
