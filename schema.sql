@@ -36,7 +36,7 @@ create index if not exists members_user_idx on public.company_members(user_id);
 -- Keep modification timestamps reliable for cloud records.
 create or replace function public.set_updated_at()
 returns trigger language plpgsql set search_path=public
-as $ begin new.updated_at=now(); return new; end $;
+as $$ begin new.updated_at=now(); return new; end $$;
 drop trigger if exists records_set_updated_at on public.records;
 create trigger records_set_updated_at before update on public.records
 for each row execute function public.set_updated_at();
