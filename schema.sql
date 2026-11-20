@@ -32,6 +32,14 @@ alter table public.records add constraint records_module_check
  check (module in ('bom','production','quality','cost','inventory','suppliers','maintenance','actions','risks'));
 create index if not exists records_company_module_date_idx on public.records(company_id,module,record_date desc);
 create index if not exists members_user_idx on public.company_members(user_id);
+
+-- Keep modification timestamps reliable for cloud records.
+create or replace function public.set_updated_at()
+returns trigger language plpgsql set search_path=public
+as $ begin new.updated_at=now(); return new; end $;
+drop trigger if exists records_set_updated_at on public.records;
+create trigger records_set_updated_at before update on public.records
+for each row execute function public.set_updated_at();
 alter table public.companies enable row level security;
 alter table public.company_members enable row level security;
 alter table public.records enable row level security;
@@ -50,8 +58,13 @@ as $$ declare new_id uuid; begin
  insert into public.company_members(company_id,user_id,role) values(new_id,auth.uid(),'admin');
  return new_id;
 end $$;
+-- Restrict helper RPCs to signed-in users; avoid default PUBLIC execution.
+revoke all on function public.create_company(text) from public, anon;
+revoke all on function public.is_company_member(uuid) from public, anon;
+revoke all on function public.is_company_admin(uuid) from public, anon;
 grant execute on function public.create_company(text) to authenticated;
 grant execute on function public.is_company_member(uuid) to authenticated;
+grant execute on function public.is_company_admin(uuid) to authenticated;
 -- Policies are recreated so this schema can be safely re-applied to an existing project.
 drop policy if exists "Members can view their companies" on public.companies;
 drop policy if exists "Members can view memberships in their companies" on public.company_members;
