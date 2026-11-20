@@ -43,3 +43,13 @@ html{min-height:100%;background:#f2f4ff}body{min-height:100vh;background:radial-
 .chartPanel .recharts-cartesian-grid-horizontal line{stroke:#e8ebfa}
 .chartPanel .recharts-cartesian-axis-tick text{fill:#7c87ad}
 @media(max-width:700px){.statgrid>.stat{padding:14px 13px;min-height:116px}.statgrid>.stat .statValue{font-size:24px}.statgrid>.stat .statLabel{font-size:10px}}
+
+/* Live date and local weather in the application header */
+.headerInfo{display:flex;align-items:center;gap:9px;margin-left:auto;margin-right:18px;min-width:0}
+.headerDate,.headerWeather{display:flex;align-items:center;gap:8px;min-height:40px;padding:7px 11px;border:1px solid #ffffff35;border-radius:12px;background:#ffffff14;color:#f7f8ff;white-space:nowrap}
+.headerDate svg,.headerWeather svg{color:#8ce9ee;flex:0 0 auto}
+.headerDate span{font-size:11px;font-weight:600}.headerDate b{font-size:11px;padding-left:7px;border-left:1px solid #ffffff35;font-variant-numeric:tabular-nums}
+.headerWeather{gap:6px;background:linear-gradient(110deg,#ffffff1d,#ffffff0d)}
+.headerWeather strong{font-size:16px;letter-spacing:-.5px}.headerWeather span{font-size:10px;font-weight:700}.headerWeather small{font-size:9px;color:#d4ddff;padding-left:5px}
+@media(max-width:1050px){.headerInfo{gap:6px;margin-right:8px}.headerDate,.headerWeather{padding:6px 8px}.headerDate span{font-size:10px}.headerWeather small{display:none}}
+@media(max-width:700px){.topbar{flex-wrap:wrap;row-gap:8px}.headerInfo{order:4;width:100%;margin:0;justify-content:flex-start;padding-left:48px}.headerDate,.headerWeather{min-height:34px;padding:5px 9px}.headerDate span{font-size:10px}.headerDate b{font-size:10px}.headerWeather strong{font-size:14px}.headerWeather span{font-size:9px}.headerWeather small{display:none}.topactions{margin-left:auto}}
