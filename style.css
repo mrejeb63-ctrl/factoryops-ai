@@ -53,3 +53,16 @@ html{min-height:100%;background:#f2f4ff}body{min-height:100vh;background:radial-
 .headerWeather strong{font-size:16px;letter-spacing:-.5px}.headerWeather span{font-size:10px;font-weight:700}.headerWeather small{font-size:9px;color:#d4ddff;padding-left:5px}
 @media(max-width:1050px){.headerInfo{gap:6px;margin-right:8px}.headerDate,.headerWeather{padding:6px 8px}.headerDate span{font-size:10px}.headerWeather small{display:none}}
 @media(max-width:700px){.topbar{flex-wrap:wrap;row-gap:8px}.headerInfo{order:4;width:100%;margin:0;justify-content:flex-start;padding-left:48px}.headerDate,.headerWeather{min-height:34px;padding:5px 9px}.headerDate span{font-size:10px}.headerDate b{font-size:10px}.headerWeather strong{font-size:14px}.headerWeather span{font-size:9px}.headerWeather small{display:none}.topactions{margin-left:auto}}
+
+/* Mobile navigation touch-target and stacking correction */
+@media(max-width:700px){
+  .topbar{z-index:25}
+  .hamb{position:relative;z-index:30;width:48px;height:48px;min-width:48px;min-height:48px;flex:0 0 48px;display:grid;place-items:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  .hamb svg{width:24px;height:24px;pointer-events:none}
+  .sidebar{z-index:50}
+  .scrim{z-index:40}
+  .mobileClose{width:44px;height:44px;min-width:44px;display:grid;place-items:center;touch-action:manipulation}
+  .headbuttons .upload,.headbuttons button{min-height:44px}
+  .importPreview{margin-top:4px;overflow:hidden}
+  .importPreview .tablewrap{max-width:100%;overflow-x:auto}
+}
