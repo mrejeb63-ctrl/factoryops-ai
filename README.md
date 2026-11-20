@@ -73,11 +73,7 @@ No store submission, paid enrollment, signing certificate, production credential
 
 ## Optional Supabase cloud mode
 
-1. Create and own a Supabase project.
-2. Add the project URL and public anon/publishable key as GitHub Actions repository variables named VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.
-3. Run root-level schema.sql in the Supabase SQL editor.
-4. Add the published site URL to Supabase Authentication allowed redirect URLs.
-5. Test authentication, company creation, tenant isolation, role permissions, export/import and recovery before entering business-critical data.
+Follow the detailed [cloud setup and validation guide](CLOUD_SETUP.md). It covers project setup, GitHub Actions variables, authentication URLs, database schema, tenant-isolation tests, role checks and backup/recovery drills. Cloud mode remains optional; without the two public project variables the application uses browser-local storage.
 
 Never put a Supabase service-role key in a browser build, GitHub Pages artifact or mobile app. A public anon key is not a substitute for correctly configured Row Level Security.
 
@@ -106,6 +102,7 @@ Requires Node.js 22+. Run npm install, npm run dev and npm run build. For native
 - [Publishing roadmap](PUBLISHING_ROADMAP.md)
 - [Google Play and App Store listing draft](STORE_LISTING.md)
 - [Release validation plan](TEST_PLAN.md)
+- [Cloud setup and validation](CLOUD_SETUP.md)
 
 ## Validation
 
